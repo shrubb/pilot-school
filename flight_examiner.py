@@ -1,3 +1,5 @@
+import pilotschool
+
 from fsuipc import FSUIPC
 
 import tkinter.ttk, tkinter.messagebox

@@ -170,7 +170,6 @@ class Progress:
         self.penalties_history = []
         self.current_segment_idx = 0
         self.prev_timestamp = None
-        self.total_penalties = {k: 0.0 for k in DEFAULTS.tolerances}
         self.current_segment_penalties = {k: 0.0 for k in DEFAULTS.tolerances}
 
         self.flight.schedule[0]['StartTime'] = 0 # TODO remove
@@ -191,13 +190,12 @@ class Progress:
 
         # maybe jump to next segment (maybe even several times)
         while __class__.segment_has_ended(record, self.flight.schedule[self.current_segment_idx]):
-            self.current_segment_penalties['Segment'] = self.flight.schedule[self.current_segment_idx]['Name']
-            self.penalties_history.append(copy.copy(self.current_segment_penalties))
-
-            for param in self.total_penalties.keys():
-                self.current_segment_penalties[param] = 0
+            segment_name = self.flight.schedule[self.current_segment_idx]['Name']
+            self.penalties_history.append(
+                (segment_name, copy.copy(self.current_segment_penalties)))
 
             self.current_segment_idx += 1
+            self.current_segment_penalties = {k: 0.0 for k in DEFAULTS.tolerances}
 
             if self.all_segments_completed():
                 # no more schedule segments left
@@ -215,6 +213,15 @@ class Progress:
             self.current_segment_penalties, self.flight.penalty_coeffs[self.current_segment_idx],
             record, self.flight.schedule[self.current_segment_idx],
             self.flight.tolerances[self.current_segment_idx], duration)
+
+    def get_summary(self):
+        total_penalties = {k: 0.0 for k in DEFAULTS.tolerances}
+
+        for segment_name, segment_penalties in self.penalties_history:
+            for param in DEFAULTS.tolerances:
+                total_penalties[param] += segment_penalties[param]
+
+        return total_penalties, self.penalties_history
 
     @staticmethod
     def segment_has_ended(record, segment):
