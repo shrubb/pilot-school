@@ -33,7 +33,7 @@ def assess_one_flight(schedule_path, flight_rec_txt, debug=False):
     progress = pilotschool.Progress(flight)
 
     for record in recording[1:]:
-        progress.step(record)
+        progress.step(record, record['timestamp'])
 
     total_penalties, penalties_history = progress.get_summary()
     return total_penalties, penalties_history, len(flight)

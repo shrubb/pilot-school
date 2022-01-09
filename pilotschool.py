@@ -177,19 +177,27 @@ class Progress:
     def all_segments_completed(self):
         return self.current_segment_idx >= len(self.flight)
 
-    def step(self, record):
+    def step(self, record, timestamp):
+        """
+        return:
+        has_segment_changed
+            bool
+            True if this step has shifted us to some next segment.
+        """
         if self.all_segments_completed():
-            return
+            return False
 
         if self.prev_timestamp is None:
-            self.prev_timestamp = record['timestamp']
-            return
+            self.prev_timestamp = timestamp
+            return False
 
-        duration = record['timestamp'] - self.prev_timestamp
-        self.prev_timestamp = record['timestamp']
+        duration = timestamp - self.prev_timestamp
+        self.prev_timestamp = timestamp
 
         # maybe jump to next segment (maybe even several times)
-        while __class__.segment_has_ended(record, self.flight.schedule[self.current_segment_idx]):
+        while segment_has_changed := __class__.segment_has_ended(
+            record, timestamp, self.flight.schedule[self.current_segment_idx]):
+
             segment_name = self.flight.schedule[self.current_segment_idx]['Name']
             self.penalties_history.append(
                 (segment_name, copy.copy(self.current_segment_penalties)))
@@ -202,17 +210,19 @@ class Progress:
                 break
             else:
                 # TODO remove
-                self.flight.schedule[self.current_segment_idx]['StartTime'] = record['timestamp']
+                self.flight.schedule[self.current_segment_idx]['StartTime'] = timestamp
 
         if self.all_segments_completed():
             # no more schedule segments left
-            return
+            return segment_has_changed
 
         # check params and maybe apply penalty
         __class__.update_penalty(
             self.current_segment_penalties, self.flight.penalty_coeffs[self.current_segment_idx],
-            record, self.flight.schedule[self.current_segment_idx],
+            record, timestamp, self.flight.schedule[self.current_segment_idx],
             self.flight.tolerances[self.current_segment_idx], duration)
+
+        return segment_has_changed
 
     def get_summary(self):
         total_penalties = {k: 0.0 for k in DEFAULTS.tolerances}
@@ -224,10 +234,10 @@ class Progress:
         return total_penalties, self.penalties_history
 
     @staticmethod
-    def segment_has_ended(record, segment):
+    def segment_has_ended(record, timestamp, segment):
         if segment['EndsAtValueTolerance'] == '>=':
             if segment['EndsAt'] == 'Time':
-                return record['timestamp'] - segment['StartTime'] >= float(segment['EndsAtValue'])
+                return timestamp - segment['StartTime'] >= float(segment['EndsAtValue'])
             else:
                 return float(record[segment['EndsAt']]) >= float(segment['EndsAtValue'])
         elif segment['EndsAtValueTolerance'] == '<=':
@@ -239,21 +249,22 @@ class Progress:
             return target_param - tolerance <= actual_param and actual_param <= target_param + tolerance
 
     @staticmethod
-    def check_within_tolerance(param_name, task, record, tolerance):
-        if not task[param_name]:
+    def check_within_tolerance(param_name, segment, record, timestamp, tolerance):
+        if not segment[param_name]:
             return True
 
-        target_param = task[param_name]
+        target_param = segment[param_name]
 
         if param_name == 'ResponseTime':
-            actual_param = record['timestamp'] - task['StartTime']
+            actual_param = timestamp - segment['StartTime']
             return actual_param <= target_param + tolerance[1]
         else:
             actual_param = record[param_name]
             return target_param + tolerance[0] <= actual_param and actual_param <= target_param + tolerance[1]
 
     @staticmethod
-    def update_penalty(current_penalties, penalties, record, task, tolerances, record_duration):
+    def update_penalty(
+        current_penalties, penalties, record, timestamp, segment, tolerances, record_duration):
         for param, param_penalty in penalties.items():
-            if not __class__.check_within_tolerance(param, task, record, tolerances[param]):
+            if not __class__.check_within_tolerance(param, segment, record, timestamp, tolerances[param]):
                 current_penalties[param] += penalties[param] * record_duration

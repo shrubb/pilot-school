@@ -62,6 +62,12 @@ class FlightInfoWindow(tkinter.Tk):
         self.is_running = True
         self.mainloop()
 
+# class FlightInfoFrame(tkinter.ttk.Frame):
+#     def __init__(self):
+#         super().__init__()
+
+#         self.hint_widget = tkinter.ttk.Text()
+
 class FlightSimParametersReader:
     def __init__(self):
         self.fsuipc = fsuipc.FSUIPC()
@@ -141,11 +147,13 @@ if __name__ == "__main__":
 
     background_worker = MainBackgroundWorker(args)
 
+    # Create the GUI
     main_window = FlightInfoWindow(
         on_close_fn=background_worker.exit,
         title=args.schedule.with_suffix("").name)
 
-    # Run main() in the background
+    # Run main code in the background
     background_worker.start()
 
+    # Run the GUI main loop
     main_window.run()
