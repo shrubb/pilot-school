@@ -34,12 +34,14 @@ class FlightInfoWindow(tkinter.Tk):
         self.attributes('-topmost',True)
 
         self.main_frame = tkinter.ttk.Frame(self)
-        self.main_frame.pack(expand=True, fill='y')
+        self.main_frame.grid() #pack(expand=True, fill='y')
 
+        # Create widgets
         self.title_widget = tkinter.ttk.Label(self.main_frame, text=title)
         separator = tkinter.ttk.Separator(self.main_frame, orient='horizontal')
         self.main_text_widget = tkinter.ttk.Label(self.main_frame, text="")
 
+        # Set widgets' positions
         self.title_widget.grid(row=0)
         separator.grid(row=1, sticky='ew')
         self.main_text_widget.grid(row=2)
@@ -79,8 +81,8 @@ class FlightSimParametersReader:
         # FSUIPC offset, FSUIPC dtype, name, conversion
         self.PARAMETERS_OF_INTEREST = [
             (0x3324, 'd', "altitude",  lambda x: x),
-            (0x2B00, 'f', "heading",   lambda x: x ), #?conv
-            (0x02BC, 'u', "speed",     lambda x: x / 128), #?type
+            (0x2B00, 'f', "heading",   lambda x: x ),
+            (0x02BC, 'u', "speed",     lambda x: x / 128),
             (0x02C8, 'd', "vertSpeed", lambda x: x * 60 * 3.28084 / 256),
             (0x0578, 'd', "pitch",     lambda x: -x * 360 / (65536*65536)),
             (0x057C, 'd', "bank",      lambda x: -x * 360 / (65536*65536)),
@@ -101,14 +103,17 @@ class FlightSimParametersReader:
     def close(self):
         self.fsuipc.close()
 
-class BackgroundWorker:
-    def __init__(self):
+class MainBackgroundWorker(threading.Thread):
+    REFRESH_INTERVAL_MSEC = 50
+
+    def __init__(self, args):
         self.should_exit = threading.Event()
+        super().__init__(target=self, args=(args,))
 
     def __call__(self, args):
         try:
-            # flight = pilotschool.Flight(args.schedule)
-            # flight_progress = pilotschool.Progress(flight)
+            flight = pilotschool.Flight(args.schedule)
+            flight_progress = pilotschool.Progress(flight)
 
             flightsim_parameters_reader = FlightSimParametersReader()
 
@@ -117,13 +122,14 @@ class BackgroundWorker:
                 text = "\n".join(f"{param_name}: {param_value}" for param_name, param_value in parameters.items())
                 main_window.update_text(text)
 
-                time.sleep(1)
+                time.sleep(__class__.REFRESH_INTERVAL_MSEC / 1000)
         except Exception as exc:
             tkinter.messagebox.showerror("Unrecoverable error", str(exc))
             raise
 
-    def set_should_exit(self):
+    def exit(self):
         self.should_exit.set()
+        self.join()
 
 
 if __name__ == "__main__":
@@ -133,13 +139,13 @@ if __name__ == "__main__":
                             "(speed/bank/altitude/...) for each etc.")
     args = argparser.parse_args()
 
-    background_worker = BackgroundWorker()
+    background_worker = MainBackgroundWorker(args)
 
     main_window = FlightInfoWindow(
-        on_close_fn=background_worker.set_should_exit,
+        on_close_fn=background_worker.exit,
         title=args.schedule.with_suffix("").name)
 
     # Run main() in the background
-    threading.Thread(target=background_worker, args=(args,)).start()
+    background_worker.start()
 
     main_window.run()
