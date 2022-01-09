@@ -19,7 +19,7 @@ class FlightInfoWindow(tkinter.Tk):
         self.is_running = False
 
         super().__init__()
-        self.title("Flight Guide")
+        self.title("Flight Examiner")
         width, height = 300, 300
         self.geometry(f"{width}x{height}")
         self.main_frame = tkinter.ttk.Frame(self)

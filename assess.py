@@ -1,10 +1,37 @@
 import pilotschool
 
-def assess_one_flight(task, flight_rec_txt, task_config, debug=False):
-    recording = pilotschool.load_frc(flight_rec_txt)
-    task = pilotschool.load_task(task)
-    default_tolerances, default_penalties = \
-        pilotschool.load_task_config(task_config)
+import math
+
+def load_frc(path):
+    retval = []
+
+    with open(path, 'r') as f:
+        line = next(f)
+        while '#Data' not in line:
+            line = next(f)
+        param_names = line[7:].split()
+
+        for line in f:
+            param_values = map(float, line.split())
+            record = {k: v for k,v in zip(param_names, param_values)}
+
+            record['vertSpeed'] = record['velocityY'] * 60
+            record['speed'] = math.sqrt( \
+                record['velocityX'] ** 2 +
+                record['velocityY'] ** 2 +
+                record['velocityZ'] ** 2) * 0.592484 # 1 ft/sec in kts
+
+            retval.append(record)
+
+    return retval
+
+def assess_one_flight(task_path, flight_rec_txt, debug=False):
+    recording = load_frc(flight_rec_txt)
+
+    flight = pilotschool.Flight(task_path)
+    task = flight.schedule
+    default_tolerances = flight.tolerances
+    default_penalties = flight.penalty_coefficients
 
     current_task_idx = 0
     prev_timestamp = 0
@@ -22,7 +49,7 @@ def assess_one_flight(task, flight_rec_txt, task_config, debug=False):
     for i,record in enumerate(recording[1:]):
         duration = record['timestamp'] - prev_timestamp
         prev_timestamp = record['timestamp']
-        
+
         # maybe jump to next segment (maybe even several times)
         while pilotschool.segment_has_ended(record, task[current_task_idx]):
             current_segment_penalties['Segment'] = task[current_task_idx]['Name']
@@ -30,9 +57,9 @@ def assess_one_flight(task, flight_rec_txt, task_config, debug=False):
 
             for param in total_penalties.keys():
                 current_segment_penalties[param] = 0
-                
+
             current_task_idx += 1
-                
+
             if current_task_idx == len(task):
                 # no more task segments left
                 break
@@ -42,13 +69,13 @@ def assess_one_flight(task, flight_rec_txt, task_config, debug=False):
                 current_penalties = copy(default_penalties)
                 pilotschool.separate_tolerances_and_penalties(
                     current_tolerances, current_penalties, task[current_task_idx])
-            
+
                 task[current_task_idx]['StartTime'] = record['timestamp']
 
         if current_task_idx == len(task):
             # no more task segments left
             break
-        
+
         # check params and maybe apply penalty
         pilotschool.update_penalty(
             current_segment_penalties, current_penalties, record, task[current_task_idx], current_tolerances, duration)
@@ -57,20 +84,18 @@ def assess_one_flight(task, flight_rec_txt, task_config, debug=False):
 
 if __name__ == '__main__':
     import argparse
-    
+
     parser = argparse.ArgumentParser(description='Assess a student\'s flight.')
     parser.add_argument('task', metavar='path-to-task.csv', type=str,
                        help='Path to task csv containing flight segments, desired pitch/bank/altitude etc.')
     parser.add_argument('flight_rec_txt', metavar='path-to-flight-recording.txt', type=str,
                        help='Path to flight recording converted to *.txt from *.frc')
-    parser.add_argument('task_config', metavar='path-to-task-config.csv', type=str, nargs='?',
-                       help='Path to task config csv containing tolerances and penalties')
     parser.add_argument('--debug', action='store_true',
                         help='Print debug data such as intermediate penalties')
     args = parser.parse_args()
 
-    all_penalties, total_segments_in_file = assess_one_flight(args.task, args.flight_rec_txt, args.task_config, args.debug)
-    
+    all_penalties, total_segments_in_file = assess_one_flight(args.task, args.flight_rec_txt, args.debug)
+
     total_penalties = {k: 0.0 for k in all_penalties[0] if k != 'Segment'}
     for segment_penalties in all_penalties:
         if args.debug:
@@ -83,7 +108,7 @@ if __name__ == '__main__':
         for param, penalty in segment_penalties.items():
             if param != 'Segment':
                 total_penalties[param] += segment_penalties[param]
-            
+
     if len(all_penalties) != total_segments_in_file:
         print('WARNING: only {}/{} tasks completed'.format(len(all_penalties), total_segments_in_file))
 
