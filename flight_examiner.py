@@ -22,6 +22,8 @@ class FlightInfoWindow(tkinter.Tk):
         self.title("Flight Examiner")
         width, height = 300, 300
         self.geometry(f"{width}x{height}")
+        self.attributes('-topmost',True)
+
         self.main_frame = tkinter.ttk.Frame(self)
         self.main_frame.pack(expand=True, fill='y')
 

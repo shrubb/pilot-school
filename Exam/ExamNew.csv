@@ -1,4 +1,4 @@
-Name,altitude,heading,speed,vertSpeed,pitch,bank,flaps,throttle1,ResponseTime,EndsAt,EndsAtParameter,EndsAtParameterTolerance
+Name,altitude,heading,speed,vertSpeed,pitch,bank,flaps,throttle1,ResponseTime,EndsAt,EndsAtValue,EndsAtValueTolerance
 Taxiing,,,,,,,,,,speed,28,>=
 Takeoff roll,,50,60+0-60; p7,,,,,,,altitude,154,>=
 Initial climb,,50,55+100-0,100+9999-0; p3,,0+-5,,,40,speed,70,>=
