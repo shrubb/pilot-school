@@ -1,11 +1,14 @@
 import pilotschool
 
-from fsuipc import FSUIPC
+import fsuipc
 
+import pathlib
 import tkinter.ttk, tkinter.messagebox
 import threading
 import sys
+import contextlib
 import time
+import argparse
 
 import logging
 logging.basicConfig(
@@ -15,7 +18,11 @@ logging.basicConfig(
 
 
 class FlightInfoWindow(tkinter.Tk):
-    def __init__(self, title="<no title set>"):
+    def __init__(self, on_close_fn=lambda: None, title="<no title set>"):
+        """
+        on_close:
+            callable
+        """
         self.logger = logging.getLogger('FlightInfoWindow')
 
         self.is_running = False
@@ -37,6 +44,12 @@ class FlightInfoWindow(tkinter.Tk):
         separator.grid(row=1, sticky='ew')
         self.main_text_widget.grid(row=2)
 
+        def _on_close():
+            if tkinter.messagebox.askokcancel("Quit", "Really quit?"):
+                on_close_fn()
+                self.destroy()
+        self.protocol("WM_DELETE_WINDOW", _on_close)
+
     def update_text(self, text):
         self.main_text_widget.config(text=text)
 
@@ -47,81 +60,86 @@ class FlightInfoWindow(tkinter.Tk):
         self.is_running = True
         self.mainloop()
 
+class FlightSimParametersReader:
+    def __init__(self):
+        self.fsuipc = fsuipc.FSUIPC()
 
-def main():
-    while True:
-        new_text = f"""
-        a {time.time()}
-        b {666}
-        """
-        main_window.update_text(new_text)
-        time.sleep(1)
+        # def size_per_dtype(dtype):
+        #     if dtype in ('b', 'c'):
+        #         return 1
+        #     elif dtype in ('h', 'H'):
+        #         return 2
+        #     elif dtype in ('d', 'u', 'F'):
+        #         return 4
+        #     elif dtype in ('l', 'L', 'f'):
+        #         return 8
+        #     else:
+        #         raise ValueError(f"Wrong py-fsuipc dtype: {dtype}")
 
-    try:
-        with FSUIPC() as fsuipc:
-            data_spec = []
+        # FSUIPC offset, FSUIPC dtype, name, conversion
+        self.PARAMETERS_OF_INTEREST = [
+            (0x3324, 'd', "altitude",  lambda x: x),
+            (0x2B00, 'f', "heading",   lambda x: x ), #?conv
+            (0x02BC, 'u', "speed",     lambda x: x / 128), #?type
+            (0x02C8, 'd', "vertSpeed", lambda x: x * 60 * 3.28084 / 256),
+            (0x0578, 'd', "pitch",     lambda x: -x * 360 / (65536*65536)),
+            (0x057C, 'd', "bank",      lambda x: -x * 360 / (65536*65536)),
+            (0x0BFC, 'b', "flaps",     lambda x: x),
+            (0x2400, 'f', "rpm",       lambda x: x),
+        ]
 
-            def size_per_dtype(dtype):
-                if dtype in ('b', 'c'):
-                    return 1
-                elif dtype in ('h', 'H'):
-                    return 2
-                elif dtype in ('d', 'u', 'F'):
-                    return 4
-                elif dtype in ('l', 'L', 'f'):
-                    return 8
-                else:
-                    raise ValueError(f"Wrong py-fsuipc dtype: {dtype}")
+        self.data_spec = self.fsuipc.prepare_data(
+            [x[:2] for x in self.PARAMETERS_OF_INTEREST], for_reading=True)
 
-            def add_field_to_spec(address, dtype):
-                data_spec.append((address, dtype))
-                return size_per_dtype(dtype)
+    def get_parameters(self):
+        param_values = self.data_spec.read()
+        return {
+            param_name: conversion(param_value) \
+            for (_, _, param_name, conversion), param_value \
+            in zip(self.PARAMETERS_OF_INTEREST, param_values)}
 
-            ptr = 0x02B4
-            ptr += add_field_to_spec(ptr, 'u')
-            ptr += add_field_to_spec(ptr, 'u')
-            ptr += add_field_to_spec(ptr, 'u')
-            ptr = 0x0560
-            ptr += add_field_to_spec(ptr, 'l')
-            ptr += add_field_to_spec(ptr, 'l')
-            ptr += add_field_to_spec(ptr, 'l')
-            ptr += add_field_to_spec(ptr, 'd')
-            ptr += add_field_to_spec(ptr, 'd')
-            ptr += add_field_to_spec(ptr, 'u')
+    def close(self):
+        self.fsuipc.close()
 
-            prepared = fsuipc.prepare_data(data_spec, True)
+class BackgroundWorker:
+    def __init__(self):
+        self.should_exit = threading.Event()
 
-            while True:
-                gs, tas, ias, lat, lon, alt, pitch, bank, hdgT = prepared.read()
+    def __call__(self, args):
+        try:
+            # flight = pilotschool.Flight(args.schedule)
+            # flight_progress = pilotschool.Progress(flight)
 
-                gs = (gs * 3600) / (65536 * 1852)
-                tas = tas / 128
-                ias = ias / 128
-                lat = lat * 90 / (10001750 * 65536 * 65536)
-                lon = lon * 360 /  (65536 * 65536 * 65536 * 65536)
-                alt = alt * 3.28084 / (65536 * 65536)
-                pitch = pitch * 360 / (65536 * 65536)
-                bank = bank * 360 / (65536 * 65536)
+            flightsim_parameters_reader = FlightSimParametersReader()
 
-                print(f"gs = {gs}")
-                print(f"tas = {tas}")
-                print(f"ias = {ias}")
-                print(f"lat = {lat}")
-                print(f"lon = {lon}")
-                print(f"alt = {alt}")
-                print(f"pitch = {pitch}")
-                print(f"bank = {bank}")
+            while not self.should_exit.is_set():
+                parameters = flightsim_parameters_reader.get_parameters()
+                text = "\n".join(f"{param_name}: {param_value}" for param_name, param_value in parameters.items())
+                main_window.update_text(text)
 
-                input("Press ENTER to read again")
-    except Exception as exc:
-        tkinter.messagebox.showerror("Unrecoverable error", str(exc))
-        raise
+                time.sleep(1)
+        except Exception as exc:
+            tkinter.messagebox.showerror("Unrecoverable error", str(exc))
+            raise
+
+    def set_should_exit(self):
+        self.should_exit.set()
 
 
 if __name__ == "__main__":
-    main_window = FlightInfoWindow()
+    argparser = argparse.ArgumentParser(description="Assess a student's flight.")
+    argparser.add_argument('schedule', metavar='path-to-schedule.csv', type=pathlib.Path,
+                       help="Path to schedule csv containing flight segments, target parameters "
+                            "(speed/bank/altitude/...) for each etc.")
+    args = argparser.parse_args()
+
+    background_worker = BackgroundWorker()
+
+    main_window = FlightInfoWindow(
+        on_close_fn=background_worker.set_should_exit,
+        title=args.schedule.with_suffix("").name)
 
     # Run main() in the background
-    threading.Thread(target=main).start()
+    threading.Thread(target=background_worker, args=(args,)).start()
 
     main_window.run()
