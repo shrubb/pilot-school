@@ -15,8 +15,9 @@ class DEFAULTS:
         'pitch': 5.0,
         'bank': 5.0,
         'flaps': 0.0,
-        'rpm': 110.0,
-        'ResponseTime': 0.0
+        'throttle': 0.06,
+        'rpm': 90.0,
+        'ResponseTime': 0.0,
     }
 
     # What is the penalty for 1 second of deviation?
@@ -28,8 +29,9 @@ class DEFAULTS:
         'pitch': 1.0,
         'bank': 1.0,
         'flaps': 1.0,
+        'throttle': 1.0,
         'rpm': 1.0,
-        'ResponseTime': 1.0
+        'ResponseTime': 1.0,
     }
 
 
@@ -181,7 +183,7 @@ class Progress:
     def get_current_segment(self):
         if self.current_segment_idx is None:
             retval = {param_name: None for param_name in DEFAULTS.tolerances.keys()}
-            retval['Name'] = '(dummy)'
+            retval['Hint'] = '(dummy)'
             return retval
         else:
             return self.flight.schedule[self.current_segment_idx]
@@ -214,7 +216,7 @@ class Progress:
             if self.current_segment_idx is None:
                 self.current_segment_idx = 0
             else:
-                segment_name = self.get_current_segment()['Name']
+                segment_name = self.get_current_segment()['Hint']
                 self.penalties_history.append(
                     (segment_name, copy.copy(self.current_segment_penalties)))
 
@@ -293,9 +295,13 @@ class Progress:
         elif segment['EndsAtValueTolerance'] == '<=':
             return float(record[segment['EndsAt']]) <= float(segment['EndsAtValue'])
         else:
+            if segment['EndsAtValueTolerance'] == "":
+                tolerance = DEFAULTS.tolerances[segment['EndsAt']]
+            else:
+                tolerance = float(segment['EndsAtValueTolerance'])
+
             target_param = float(segment['EndsAtValue'])
             actual_param = record[segment['EndsAt']]
-            tolerance = float(segment['EndsAtValueTolerance'])
             return target_param - tolerance <= actual_param and actual_param <= target_param + tolerance
 
     @staticmethod

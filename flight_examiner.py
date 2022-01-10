@@ -158,6 +158,14 @@ class FlightInfoFrame(tkinter.Text):
 
             self.insert(current_position, text + "\n", (met_unmet_tag, common_tag))
 
+    def blink(self, color='#bb00bb', time_ms=500):
+        self.configure(bg=color)
+
+        def revert_color():
+            self.configure(bg='white')
+
+        self.after(time_ms, revert_color)
+
     @staticmethod
     def parameter_to_readable(param_name, param_value):
         param_value = float(param_value)
@@ -182,6 +190,10 @@ class FlightInfoFrame(tkinter.Text):
             return f"{round(param_value)}"
         elif param_name == 'rpm':
             return f"{round(param_value)} RPM"
+        elif param_name == 'throttle':
+            return f"{round(param_value * 100)}%"
+        elif param_name == 'pause':
+            return f"'{param_value}'"
         else:
             raise ValueError(f"{param_name}")
 
@@ -195,7 +207,7 @@ class FlightInfoFrame(tkinter.Text):
             return param_name
 
     PARAMETER_PRIORITY = {name: i for i, name in enumerate(
-        ['Time', 'ResponseTime', 'speed', 'rpm', 'flaps', 'altitude',
+        ['Time', 'ResponseTime', 'speed', 'throttle', 'rpm', 'flaps', 'altitude',
         'heading', 'bank', 'pitch', 'vertical speed'])}
 
 
@@ -225,6 +237,8 @@ class FlightSimParametersReader:
             (0x057C, 'd', "bank",           lambda x: -x * 360 / (65536*65536)),
             (0x0BFC, 'b', "flaps",          lambda x: x),
             (0x2400, 'f', "rpm",            lambda x: x),
+            (0x088C, 'h', "throttle",       lambda x: x / 16384),
+            (0x0264, 'H', "pause",          lambda x: 1 * (x & 0x4 != 0)),
         ]
 
         self.data_spec = self.fsuipc.prepare_data(
@@ -255,7 +269,7 @@ class MainBackgroundWorker(threading.Thread):
 
             # from assess import load_frc
             # class flightsim_parameters_reader:
-            #     records = load_frc("./tmp-flight.txt")[3000::4]
+            #     records = load_frc("./old/tmp-flight.txt")[3000::]
             #     from tqdm import tqdm
             #     it = iter(tqdm(records))
             #     def get_parameters():
@@ -267,7 +281,7 @@ class MainBackgroundWorker(threading.Thread):
 
             while not self.should_exit.is_set():
                 parameters = flightsim_parameters_reader.get_parameters()
-                timestamp = parameters['timestamp'] #time.time()
+                timestamp = time.time() # parameters['timestamp']
 
                 has_segment_changed, constraints = flight_progress.step(parameters, timestamp)
 
@@ -278,7 +292,7 @@ class MainBackgroundWorker(threading.Thread):
                         def get_output_path():
                             date = datetime.datetime.now().strftime("%Y-%m-%d-%H%M")
                             output_file_name = f"{args.schedule.with_suffix('').name}, {captain_name}, {date}.csv"
-                            return args.schedule.parent / output_file_name
+                            return pathlib.Path("./Results") / output_file_name
 
                         output_path = get_output_path()
                         main_window.main_info_widget.display_summary(
@@ -295,6 +309,8 @@ class MainBackgroundWorker(threading.Thread):
 
                         main_window.main_info_widget.update_hint(hint)
                         main_window.main_info_widget.update_finish_condition(finish_param_name, finish_param_value)
+
+                    main_window.main_info_widget.blink()
 
                 have_constraints_changed = constraints != prev_constraints
                 if have_constraints_changed:
