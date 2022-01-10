@@ -8,27 +8,27 @@ import copy
 class DEFAULTS:
     # How much is the pilot allowed to deviate without penalty?
     tolerances = {
-        'altitude': 100.0,
-        'vertSpeed': 150.0,
+        'altitude': 90.0,
+        'vertical speed': 150.0,
         'heading': 5.0,
         'speed': 7.0,
         'pitch': 5.0,
         'bank': 5.0,
         'flaps': 0.0,
-        'throttle1': 1000.0,
+        'rpm': 110.0,
         'ResponseTime': 0.0
     }
 
     # What is the penalty for 1 second of deviation?
     penalties = {
         'altitude': 1.0,
-        'vertSpeed': 1.0,
+        'vertical speed': 1.0,
         'heading': 1.0,
         'speed': 1.0,
         'pitch': 1.0,
         'bank': 1.0,
         'flaps': 1.0,
-        'throttle1': 1.0,
+        'rpm': 1.0,
         'ResponseTime': 1.0
     }
 
@@ -168,14 +168,23 @@ class Progress:
         self.flight = copy.copy(flight)
 
         self.penalties_history = []
-        self.current_segment_idx = 0
+        self.current_segment_idx = None
         self.prev_timestamp = None
         self.current_segment_penalties = {k: 0.0 for k in DEFAULTS.tolerances}
 
         self.flight.schedule[0]['StartTime'] = 0 # TODO remove
 
     def all_segments_completed(self):
-        return self.current_segment_idx >= len(self.flight)
+        return self.current_segment_idx is not None and \
+               self.current_segment_idx >= len(self.flight)
+
+    def get_current_segment(self):
+        if self.current_segment_idx is None:
+            retval = {param_name: None for param_name in DEFAULTS.tolerances.keys()}
+            retval['Name'] = '(dummy)'
+            return retval
+        else:
+            return self.flight.schedule[self.current_segment_idx]
 
     def step(self, record, timestamp):
         """
@@ -183,26 +192,34 @@ class Progress:
         has_segment_changed
             bool
             True if this step has shifted us to some next segment.
+        constraints
+            list of (str, number, bool)
+            Each tuple means (parameter name, parameter value, is constraint currently met)
         """
         if self.all_segments_completed():
-            return False
+            return False, []
 
         if self.prev_timestamp is None:
             self.prev_timestamp = timestamp
-            return False
+            return False, []
 
         duration = timestamp - self.prev_timestamp
         self.prev_timestamp = timestamp
 
         # maybe jump to next segment (maybe even several times)
-        while segment_has_changed := __class__.segment_has_ended(
-            record, timestamp, self.flight.schedule[self.current_segment_idx]):
+        segment_has_changed = False
+        while self.segment_has_ended(record, timestamp):
+            segment_has_changed = True
 
-            segment_name = self.flight.schedule[self.current_segment_idx]['Name']
-            self.penalties_history.append(
-                (segment_name, copy.copy(self.current_segment_penalties)))
+            if self.current_segment_idx is None:
+                self.current_segment_idx = 0
+            else:
+                segment_name = self.get_current_segment()['Name']
+                self.penalties_history.append(
+                    (segment_name, copy.copy(self.current_segment_penalties)))
 
-            self.current_segment_idx += 1
+                self.current_segment_idx += 1
+
             self.current_segment_penalties = {k: 0.0 for k in DEFAULTS.tolerances}
 
             if self.all_segments_completed():
@@ -210,19 +227,37 @@ class Progress:
                 break
             else:
                 # TODO remove
-                self.flight.schedule[self.current_segment_idx]['StartTime'] = timestamp
+                self.get_current_segment()['StartTime'] = timestamp
 
         if self.all_segments_completed():
             # no more schedule segments left
-            return segment_has_changed
+            return segment_has_changed, []
 
         # check params and maybe apply penalty
-        __class__.update_penalty(
-            self.current_segment_penalties, self.flight.penalty_coeffs[self.current_segment_idx],
-            record, timestamp, self.flight.schedule[self.current_segment_idx],
-            self.flight.tolerances[self.current_segment_idx], duration)
+        constraints = self._update_penalty(record, timestamp, duration)
 
-        return segment_has_changed
+        return segment_has_changed, constraints
+
+    def _update_penalty(self, record, timestamp, record_duration):
+        tolerances = self.flight.tolerances[self.current_segment_idx]
+        penalty_coeffs = self.flight.penalty_coeffs[self.current_segment_idx]
+        segment = self.get_current_segment()
+        constraints_retval = []
+
+        for param_name, param_penalty in penalty_coeffs.items():
+            constraint_is_met = __class__.check_within_tolerance(
+                param_name, segment, record, timestamp, tolerances[param_name])
+
+            if not constraint_is_met:
+                self.current_segment_penalties[param_name] += penalty_coeffs[param_name] * record_duration
+
+            if segment[param_name] is not None:
+                constraints_retval.append((param_name, segment[param_name], constraint_is_met))
+
+        return constraints_retval
+
+    def get_current_segment_penalty_total(self):
+        return sum(self.current_segment_penalties.values())
 
     def get_summary(self):
         total_penalties = {k: 0.0 for k in DEFAULTS.tolerances}
@@ -233,8 +268,23 @@ class Progress:
 
         return total_penalties, self.penalties_history
 
-    @staticmethod
-    def segment_has_ended(record, timestamp, segment):
+    def save_report(self, output_path):
+        with open(output_path, 'w', newline='') as csvfile:
+            field_names = ['Segment name'] + sorted(DEFAULTS.tolerances)
+            csv_writer = csv.DictWriter(csvfile, field_names, delimiter=',')
+
+            csv_writer.writeheader()
+            for segment_name, segment_penalties in self.penalties_history:
+                row = copy.copy(segment_penalties)
+                row['Segment name'] = segment_name
+                csv_writer.writerow(row)
+
+    def segment_has_ended(self, record, timestamp):
+        if self.current_segment_idx is None:
+            return True
+
+        segment = self.get_current_segment()
+
         if segment['EndsAtValueTolerance'] == '>=':
             if segment['EndsAt'] == 'Time':
                 return timestamp - segment['StartTime'] >= float(segment['EndsAtValue'])
@@ -250,7 +300,7 @@ class Progress:
 
     @staticmethod
     def check_within_tolerance(param_name, segment, record, timestamp, tolerance):
-        if not segment[param_name]:
+        if segment[param_name] is None:
             return True
 
         target_param = segment[param_name]
@@ -261,10 +311,3 @@ class Progress:
         else:
             actual_param = record[param_name]
             return target_param + tolerance[0] <= actual_param and actual_param <= target_param + tolerance[1]
-
-    @staticmethod
-    def update_penalty(
-        current_penalties, penalties, record, timestamp, segment, tolerances, record_duration):
-        for param, param_penalty in penalties.items():
-            if not __class__.check_within_tolerance(param, segment, record, timestamp, tolerances[param]):
-                current_penalties[param] += penalties[param] * record_duration

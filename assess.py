@@ -16,7 +16,7 @@ def load_frc(path):
             param_values = map(float, line.split())
             record = {k: v for k,v in zip(param_names, param_values)}
 
-            record['vertSpeed'] = record['velocityY'] * 60
+            record['vertical speed'] = record['velocityY'] * 60
             record['speed'] = math.sqrt( \
                 record['velocityX'] ** 2 +
                 record['velocityY'] ** 2 +

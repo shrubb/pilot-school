@@ -2,8 +2,13 @@ import pilotschool
 
 import fsuipc
 
+import tkinter.ttk
+import tkinter.messagebox
+import tkinter.font
+import tkinter.simpledialog
+
+import datetime
 import pathlib
-import tkinter.ttk, tkinter.messagebox
 import threading
 import sys
 import contextlib
@@ -17,8 +22,10 @@ logging.basicConfig(
     format="PID %(process)d - %(asctime)s - %(levelname)s - %(name)s - %(message)s")
 
 
+WINDOW_SIZE = (300, 350)
+
 class FlightInfoWindow(tkinter.Tk):
-    def __init__(self, on_close_fn=lambda: None, title="<no title set>"):
+    def __init__(self, on_load_fn=lambda: None, on_close_fn=lambda: None, title="<no title set>"):
         """
         on_close:
             callable
@@ -28,23 +35,27 @@ class FlightInfoWindow(tkinter.Tk):
         self.is_running = False
 
         super().__init__()
-        self.title("Flight Examiner")
-        width, height = 300, 300
+        tkinter.ttk.Style().theme_use('clam')
+        width, height = WINDOW_SIZE
         self.geometry(f"{width}x{height}")
-        self.attributes('-topmost',True)
-
-        self.main_frame = tkinter.ttk.Frame(self)
-        self.main_frame.grid() #pack(expand=True, fill='y')
+        self.geometry(f"+0+0")
+        self.attributes('-topmost', True)
+        self.configure(bg='white')
+        self.columnconfigure(0, weight=1)
 
         # Create widgets
-        self.title_widget = tkinter.ttk.Label(self.main_frame, text=title)
-        separator = tkinter.ttk.Separator(self.main_frame, orient='horizontal')
-        self.main_text_widget = tkinter.ttk.Label(self.main_frame, text="")
+        self.title_widget = tkinter.ttk.Label(self, text=title, background='white')
+        separator = tkinter.ttk.Separator(self, orient='horizontal')
+        self.main_info_widget = FlightInfoFrame(self)
 
         # Set widgets' positions
         self.title_widget.grid(row=0)
         separator.grid(row=1, sticky='ew')
-        self.main_text_widget.grid(row=2)
+        self.main_info_widget.grid(row=2, sticky='ew')
+
+        # self.title_widget.grid_columnconfigure(0, weight=1)
+        # separator.grid_columnconfigure(0, weight=1)
+        # self.main_info_widget.grid_columnconfigure(0, weight=1)
 
         def _on_close():
             if tkinter.messagebox.askokcancel("Quit", "Really quit?"):
@@ -52,8 +63,13 @@ class FlightInfoWindow(tkinter.Tk):
                 self.destroy()
         self.protocol("WM_DELETE_WINDOW", _on_close)
 
-    def update_text(self, text):
-        self.main_text_widget.config(text=text)
+        self.withdraw()
+        self.captain_name = tkinter.simpledialog.askstring(
+            "Hi Cadet!", "Captain's name:", parent=self) or ""
+        self.title(f"{self.captain_name} - Flight Examiner")
+        self.deiconify()
+
+        on_load_fn()
 
     def run(self):
         if self.is_running:
@@ -62,11 +78,126 @@ class FlightInfoWindow(tkinter.Tk):
         self.is_running = True
         self.mainloop()
 
-# class FlightInfoFrame(tkinter.ttk.Frame):
-#     def __init__(self):
-#         super().__init__()
+class FlightInfoFrame(tkinter.Text):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs, relief=tkinter.FLAT)
 
-#         self.hint_widget = tkinter.ttk.Text()
+        hint_config = {'font': tkinter.font.Font(family='Calibri', size=14, weight='bold')}
+        finish_condition_config = {'font': tkinter.font.Font(family='Calibri', size=14)}
+        simple_text_config = {'font': tkinter.font.Font(family='Calibri', size=14)}
+        met_constraint_config = {'font': tkinter.font.Font(family='Arial', size=16), 'foreground': 'white', 'background': '#38761d'}
+        unmet_constraint_config = {'font': tkinter.font.Font(family='Arial', size=16), 'foreground': 'white', 'background': '#990000'}
+        penalty_config = {'font': tkinter.font.Font(family='Calibri', size=14)}
+
+        self.tag_configure('HINT', **hint_config)
+        self.tag_configure('FINISH_CONDITION', **finish_condition_config)
+        self.tag_configure('SIMPLE_TEXT', **simple_text_config)
+        self.tag_configure('MET_CONSTRAINT', **met_constraint_config)
+        self.tag_configure('UNMET_CONSTRAINT', **unmet_constraint_config)
+        self.tag_configure('PENALTY', **penalty_config)
+
+        self.insert('end', "Make a left turn to 240°.\n\n", 'HINT')
+        self.insert('end', "Waiting for bank ≤20°...\n\n", 'FINISH_CONDITION')
+        self.insert('end', "Active constraints:\n", 'SIMPLE_TEXT')
+        self.insert('end', "You have 6 seconds\n", ('MET_CONSTRAINT', 'CONSTRAINTS'))
+        self.insert('end', "Altitude = 1500 ft\n", ('UNMET_CONSTRAINT', 'CONSTRAINTS'))
+        self.insert('end', "\nTotal penalty for this segment: 10.83", 'PENALTY')
+
+    def _update_text_by_tag(self, text: str, tag: str):
+        tag_start_position = self.index(f'{tag}.first')
+        self.delete(tag_start_position, f'{tag}.last')
+        self.insert(tag_start_position, text, tag)
+
+    def update_hint(self, text: str):
+        self._update_text_by_tag(text + "\n\n", 'HINT')
+
+    def update_finish_condition(self, param_name: str, param_value: float):
+        if param_name == 'Time':
+            text = f"Waiting for {self.parameter_to_readable(param_name, param_value)}..."
+        else:
+            text = f"Waiting for {self.parameter_to_description(param_name)} to reach " \
+                   f"{self.parameter_to_readable(param_name, param_value)}..."
+        self._update_text_by_tag(text + "\n\n", 'FINISH_CONDITION')
+
+    def update_penalty(self, penalty):
+        text = f"\nTotal penalty for this segment: {round(penalty, 2)}"
+        self._update_text_by_tag(text, 'PENALTY')
+
+    def display_summary(self, total_penalty, report_csv_path):
+        self.update_hint("Done, congrats!")
+        self._update_text_by_tag(
+            f"Your overall penalty is {round(total_penalty, 2)}\n\n", 'FINISH_CONDITION')
+        self._update_text_by_tag(f"", 'SIMPLE_TEXT')
+        self._update_text_by_tag(f"A detailed report written to:\n\n{report_csv_path}", 'PENALTY')
+
+    def update_constraints(self, constraints):
+        """
+        constraints
+            list of (str, number, bool)
+            Each tuple means (parameter name, parameter value, is constraint currently met)
+        """
+        constraints = sorted(constraints, key=lambda x: -__class__.PARAMETER_PRIORITY[x[0]])
+
+        common_tag = 'CONSTRAINTS'
+        tag_start_position = self.index(f'{common_tag}.first')
+        self.delete(tag_start_position, f'{common_tag}.last')
+
+        if constraints == []:
+            self.insert(tag_start_position, "\n\n", ('MET_CONSTRAINT', common_tag))
+            return
+
+        current_position = tag_start_position
+        for param_name, param_value, is_constraint_met in constraints:
+            if param_name == 'ResponseTime':
+                text = f"You have {self.parameter_to_readable(param_name, param_value)}"
+            else:
+                text = f"{self.parameter_to_description(param_name).capitalize()} = " \
+                       f"{self.parameter_to_readable(param_name, param_value)}"
+
+            met_unmet_tag = is_constraint_met and 'MET_CONSTRAINT' or 'UNMET_CONSTRAINT'
+
+            self.insert(current_position, text + "\n", (met_unmet_tag, common_tag))
+
+    @staticmethod
+    def parameter_to_readable(param_name, param_value):
+        param_value = float(param_value)
+
+        if 'Time' in param_name:
+            return f"{round(param_value)} second(s)"
+        elif param_name == 'altitude':
+            return f"{round(param_value)} ft"
+        elif param_name == 'vertical speed':
+            return f"{round(param_value)} ft/min"
+        elif param_name == 'heading':
+            if param_value < 1.0:
+                param_value = 360.0
+            return f"{round(param_value)}°"
+        elif param_name == 'speed':
+            return f"{round(param_value)} kts"
+        elif param_name == 'pitch':
+            return f"{round(param_value)}°"
+        elif param_name == 'bank':
+            return f"{round(param_value)}°"
+        elif param_name == 'flaps':
+            return f"{round(param_value)}"
+        elif param_name == 'rpm':
+            return f"{round(param_value)} RPM"
+        else:
+            raise ValueError(f"{param_name}")
+
+    @staticmethod
+    def parameter_to_description(param_name):
+        if 'Time' in param_name:
+            return "time"
+        elif param_name == 'rpm':
+            return "engine"
+        else:
+            return param_name
+
+    PARAMETER_PRIORITY = {name: i for i, name in enumerate(
+        ['Time', 'ResponseTime', 'speed', 'rpm', 'flaps', 'altitude',
+        'heading', 'bank', 'pitch', 'vertical speed'])}
+
 
 class FlightSimParametersReader:
     def __init__(self):
@@ -86,14 +217,14 @@ class FlightSimParametersReader:
 
         # FSUIPC offset, FSUIPC dtype, name, conversion
         self.PARAMETERS_OF_INTEREST = [
-            (0x3324, 'd', "altitude",  lambda x: x),
-            (0x2B00, 'f', "heading",   lambda x: x ),
-            (0x02BC, 'u', "speed",     lambda x: x / 128),
-            (0x02C8, 'd', "vertSpeed", lambda x: x * 60 * 3.28084 / 256),
-            (0x0578, 'd', "pitch",     lambda x: -x * 360 / (65536*65536)),
-            (0x057C, 'd', "bank",      lambda x: -x * 360 / (65536*65536)),
-            (0x0BFC, 'b', "flaps",     lambda x: x),
-            (0x2400, 'f', "rpm",       lambda x: x),
+            (0x3324, 'd', "altitude",       lambda x: x),
+            (0x2B00, 'f', "heading",        lambda x: x ),
+            (0x02BC, 'u', "speed",          lambda x: x / 128),
+            (0x02C8, 'd', "vertical speed", lambda x: x * 60 * 3.28084 / 256),
+            (0x0578, 'd', "pitch",          lambda x: -x * 360 / (65536*65536)),
+            (0x057C, 'd', "bank",           lambda x: -x * 360 / (65536*65536)),
+            (0x0BFC, 'b', "flaps",          lambda x: x),
+            (0x2400, 'f', "rpm",            lambda x: x),
         ]
 
         self.data_spec = self.fsuipc.prepare_data(
@@ -110,7 +241,7 @@ class FlightSimParametersReader:
         self.fsuipc.close()
 
 class MainBackgroundWorker(threading.Thread):
-    REFRESH_INTERVAL_MSEC = 50
+    REFRESH_INTERVAL_MSEC = 75
 
     def __init__(self, args):
         self.should_exit = threading.Event()
@@ -120,13 +251,61 @@ class MainBackgroundWorker(threading.Thread):
         try:
             flight = pilotschool.Flight(args.schedule)
             flight_progress = pilotschool.Progress(flight)
+            captain_name = main_window.captain_name
 
+            # from assess import load_frc
+            # class flightsim_parameters_reader:
+            #     records = load_frc("./tmp-flight.txt")[3000::4]
+            #     from tqdm import tqdm
+            #     it = iter(tqdm(records))
+            #     def get_parameters():
+            #         return next(__class__.it)
             flightsim_parameters_reader = FlightSimParametersReader()
+
+            prev_constraints = None
+            prev_penalty = -1e9
 
             while not self.should_exit.is_set():
                 parameters = flightsim_parameters_reader.get_parameters()
-                text = "\n".join(f"{param_name}: {param_value}" for param_name, param_value in parameters.items())
-                main_window.update_text(text)
+                timestamp = parameters['timestamp'] #time.time()
+
+                has_segment_changed, constraints = flight_progress.step(parameters, timestamp)
+
+                if has_segment_changed:
+                    if flight_progress.all_segments_completed():
+                        total_penalty, _ = flight_progress.get_summary()
+
+                        def get_output_path():
+                            date = datetime.datetime.now().strftime("%Y-%m-%d-%H%M")
+                            output_file_name = f"{args.schedule.with_suffix('').name}, {captain_name}, {date}.csv"
+                            return args.schedule.parent / output_file_name
+
+                        output_path = get_output_path()
+                        main_window.main_info_widget.display_summary(
+                            sum(total_penalty.values()), output_path.resolve())
+                        flight_progress.save_report(output_path)
+
+                        return
+                    else:
+                        current_segment = flight_progress.get_current_segment()
+
+                        hint = current_segment['Hint']
+                        finish_param_name = current_segment['EndsAt']
+                        finish_param_value = current_segment['EndsAtValue']
+
+                        main_window.main_info_widget.update_hint(hint)
+                        main_window.main_info_widget.update_finish_condition(finish_param_name, finish_param_value)
+
+                have_constraints_changed = constraints != prev_constraints
+                if have_constraints_changed:
+                    main_window.main_info_widget.update_constraints(constraints)
+                    prev_constraints = constraints
+
+                current_penalty = flight_progress.get_current_segment_penalty_total()
+                has_penalty_changed = abs(current_penalty - prev_penalty) > 0.01
+                if has_penalty_changed:
+                    main_window.main_info_widget.update_penalty(current_penalty)
+                    prev_penalty = current_penalty
 
                 time.sleep(__class__.REFRESH_INTERVAL_MSEC / 1000)
         except Exception as exc:
@@ -149,11 +328,9 @@ if __name__ == "__main__":
 
     # Create the GUI
     main_window = FlightInfoWindow(
+        on_load_fn=background_worker.start,
         on_close_fn=background_worker.exit,
         title=args.schedule.with_suffix("").name)
-
-    # Run main code in the background
-    background_worker.start()
 
     # Run the GUI main loop
     main_window.run()

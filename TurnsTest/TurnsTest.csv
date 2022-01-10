@@ -1,4 +1,4 @@
-Name,altitude,heading,speed,vertSpeed,pitch,bank,flaps,throttle1,ResponseTime,EndsAt,EndsAtValue,EndsAtValueTolerance
+Name,altitude,heading,speed,vertical speed,pitch,bank,flaps,rpm,ResponseTime,EndsAt,EndsAtValue,EndsAtValueTolerance
 Free070,,,,,,,0,,,Time,20,>=
 Straight070,3000,70+9-5,100,,,0,0,,,Time,10,>=
 StartTurn340,3000,,100,,,,0,,13,bank,-20,4
