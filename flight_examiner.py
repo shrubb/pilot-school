@@ -96,12 +96,12 @@ class FlightInfoFrame(tkinter.Text):
         self.tag_configure('UNMET_CONSTRAINT', **unmet_constraint_config)
         self.tag_configure('PENALTY', **penalty_config)
 
-        self.insert('end', "Make a left turn to 240°.\n\n", 'HINT')
-        self.insert('end', "Waiting for bank ≤20°...\n\n", 'FINISH_CONDITION')
+        self.insert('end', "This line tells you what you're expected to do now.\n\n", 'HINT')
+        self.insert('end', "This explains when will the next stage start.\n\n", 'FINISH_CONDITION')
         self.insert('end', "Active constraints:\n", 'SIMPLE_TEXT')
-        self.insert('end', "You have 6 seconds\n", ('MET_CONSTRAINT', 'CONSTRAINTS'))
-        self.insert('end', "Altitude = 1500 ft\n", ('UNMET_CONSTRAINT', 'CONSTRAINTS'))
-        self.insert('end', "\nTotal penalty for this segment: 10.83", 'PENALTY')
+        self.insert('end', "This is a satisfied constraint.\n", ('MET_CONSTRAINT', 'CONSTRAINTS'))
+        self.insert('end', "Unmet constraints are in red.\n", ('UNMET_CONSTRAINT', 'CONSTRAINTS'))
+        self.insert('end', "\nTotal penalty for this segment: <...>", 'PENALTY')
 
     def _update_text_by_tag(self, text: str, tag: str):
         tag_start_position = self.index(f'{tag}.first')
@@ -278,12 +278,23 @@ class MainBackgroundWorker(threading.Thread):
 
             prev_constraints = None
             prev_penalty = -1e9
+            total_pause_time = 0.0
+            pause_start_time = None
 
             while not self.should_exit.is_set():
                 parameters = flightsim_parameters_reader.get_parameters()
-                timestamp = time.time() # parameters['timestamp']
 
-                has_segment_changed, constraints = flight_progress.step(parameters, timestamp)
+                if parameters['pause'] == 1:
+                    if pause_start_time is None:
+                        pause_start_time = time.time()
+                    continue
+                else:
+                    timestamp = time.time() # parameters['timestamp']
+                    if pause_start_time is not None:
+                        total_pause_time += timestamp - pause_start_time
+                        pause_start_time = None
+
+                has_segment_changed, constraints = flight_progress.step(parameters, timestamp - total_pause_time)
 
                 if has_segment_changed:
                     if flight_progress.all_segments_completed():
