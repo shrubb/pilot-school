@@ -1,0 +1,18 @@
+altitude,heading,speed,vertical speed,pitch,bank,flaps,throttle,rpm,ResponseTime,EndsAt,EndsAtValue,EndsAtValueTolerance,Hint
+1500,,,0,,0,,,,,Time,25,>=,"Maintain altitude, keep wings level, and enjoy the view! :)"
+,,,,,0,,,,10,throttle,1,,"Apply full power. Then, pull the yoke to start climbing."
+,,,,,0,,1,,20,speed,75,,Pick a nose-up angle that will make you climb at 75 knots.
+,,75,,,0,,1,,,altitude,3000,,"Climb to 3000 feet. Manage speed by pulling or pushing yoke. Too slow = push, too fast = pull."
+,,,,,0,,1,,,Time,8,>=,We're approaching 3000 feet. Get ready to level off.
+3000,,,,,0,,,,10,rpm,2300,,Now maintain 3000 feet and reduce power to 2300 RPM.
+3000,,,0,,0,,,2300,,Time,30,>=,Maintain 3000 feet.
+3000,,,0,,0,,,,10,throttle,0,,"Now reduce power to idle (0%), after that we will descend."
+,,,,,0,,0,,,altitude,2900,<=,"Without engine power, the speed will drop. Lower the nose to keep 80 knots."
+,,80,,,0,,0,,,altitude,1500,,"Keep 80 knots by adjusting the pitch. Descend back to 1500 feet, towards Skoltech :)"
+,,,,,0,,0,,,Time,8,>=,We're approaching 1500 feet. Get ready to level off.
+1500,,,,,0,,,,10,rpm,2300,,Now increase power to 2300 RPM to save speed. Keep 1500 feet.
+1500,,,0,,0,,,2300,,Time,15,>=,Great job. Maintain the altitude.
+1500,,,0,,0,,,,10,rpm,1750,,Now let's maintain altitude but fly slower. Reduce power to 1750 RPM.
+1500,,,0,,0,,,1750,,Time,30,>=,Notice how you have to raise the nose to keep altitude.
+1500,,,0,,0,,,,10,rpm,2400,,Accelerate again by increasing power to 2400 RPM. You'll have to push the yoke.
+1500,,,0,,0,,,2400,,Time,20,>=,A faster speed allows a smaller angle of attack to get same lift.

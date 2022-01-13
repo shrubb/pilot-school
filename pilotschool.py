@@ -2,6 +2,7 @@ import math
 import csv
 import pathlib
 import copy
+import logging
 
 # Default values that can be overriden both in "... (config).csv" (for the entire flight)
 # and in ".csv" (for each segment separately).
@@ -96,7 +97,11 @@ class Flight:
                     if value:
                         # strip because Excel seems not to allow cell values starting with minus
                         value = value.strip()
-                        tolerances[name] = __class__.parse_tolerance(value)
+                        try:
+                            tolerances[name] = __class__.parse_tolerance(value)
+                        except Exception as e:
+                            logging.fatal(f"Couldn't parse config tolerance for '{name}'")
+                            raise
 
                 for name,value in new_penalties.items():
                     assert name in penalties, name + ' in ' + path + ' is invalid'

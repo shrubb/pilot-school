@@ -228,13 +228,32 @@ class FlightSimParametersReader:
         #         raise ValueError(f"Wrong py-fsuipc dtype: {dtype}")
 
         # FSUIPC offset, FSUIPC dtype, name, conversion
+        def convert_bank(bank):
+            actual_bank = [0, 5  , 10  , 15  , 20  , 25  , 30, 45  , 60, 90]
+            msfs_bank =   [0, 9.5, 15.9, 21.5, 27.6, 34.9, 42, 52.5, 66, 90]
+
+            i = None
+            for i in range(1, len(msfs_bank)):
+                if abs(bank) < msfs_bank[i]:
+                    break
+            else:
+                return -bank
+
+            retval = actual_bank[i - 1] + (actual_bank[i] - actual_bank[i - 1]) * \
+                ((abs(bank) - msfs_bank[i - 1]) / (msfs_bank[i] - msfs_bank[i - 1]))
+            if bank > 0:
+                retval = -retval
+
+            return retval
+
         self.PARAMETERS_OF_INTEREST = [
             (0x3324, 'd', "altitude",       lambda x: x),
             (0x2B00, 'f', "heading",        lambda x: x ),
             (0x02BC, 'u', "speed",          lambda x: x / 128),
             (0x02C8, 'd', "vertical speed", lambda x: x * 60 * 3.28084 / 256),
             (0x0578, 'd', "pitch",          lambda x: -x * 360 / (65536*65536)),
-            (0x057C, 'd', "bank",           lambda x: -x * 360 / (65536*65536)),
+            # (0x057C, 'd', "bank",           lambda x: -x * 360 / (65536*65536)),
+            (0x2F78, 'f', "bank",           convert_bank),
             (0x0BFC, 'b', "flaps",          lambda x: x),
             (0x2400, 'f', "rpm",            lambda x: x),
             (0x088C, 'h', "throttle",       lambda x: x / 16384),
