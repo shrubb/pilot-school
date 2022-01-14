@@ -14,6 +14,7 @@ import sys
 import contextlib
 import time
 import argparse
+import math
 
 import logging
 logging.basicConfig(
@@ -320,16 +321,19 @@ class MainBackgroundWorker(threading.Thread):
 
                 if has_segment_changed:
                     if flight_progress.all_segments_completed():
-                        total_penalty, _ = flight_progress.get_summary()
+                        total_penalties, _ = flight_progress.get_summary()
+                        total_penalty = sum(total_penalties.values())
 
-                        def get_output_path():
+                        def get_output_path(total_penalty=0.0):
                             date = datetime.datetime.now().strftime("%Y-%m-%d-%H%M")
-                            output_file_name = f"{args.schedule.with_suffix('').name}, {captain_name}, {date}.csv"
+                            output_file_name = \
+                                f"{args.schedule.with_suffix('').name}, {captain_name}, " \
+                                f"{date}, {round((math.sin(total_penalty) + 1) * 1000)}.csv"
                             return pathlib.Path("./Results") / output_file_name
 
-                        output_path = get_output_path()
+                        output_path = get_output_path(total_penalty)
                         main_window.main_info_widget.display_summary(
-                            sum(total_penalty.values()), output_path.resolve())
+                            total_penalty, output_path.resolve())
                         flight_progress.save_report(output_path)
 
                         return

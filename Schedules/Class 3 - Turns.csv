@@ -1,19 +1,19 @@
-altitude,heading,speed,vertical speed,pitch,bank,flaps,throttle,rpm,ResponseTime,EndsAt,EndsAtValue,EndsAtValueTolerance,Hint
-1000,,,0,,0,,,2300,,Time,5,>=,Maintain altitude AND heading (310°). You don't have to use throttle in this exercise.
-1000,310,,0,,0,,,2300,,Time,15,>=,Maintain altitude AND heading (310°). You don't have to use throttle in this exercise.
-1000,,,0,,,,,2300,10,bank,-20,,Turn LEFT to heading 220° with a 20° bank.
-1000,,,0,,-20,,,2300,,heading,220,,Turn LEFT to heading 220° with a 20° bank.
-1000,,,0,,,,,2300,,Time,3,>=,Maintain altitude and heading.
-1000,220,,0,,0,,,2300,,Time,15,>=,Maintain altitude and heading.
-1000,,,0,,,,,2300,10,bank,10,,Turn RIGHT to heading 290° with a 10° bank.
-1000,,,0,,10,,,2300,,heading,290,,Turn RIGHT to heading 290° with a 10° bank.
-1000,,,0,,,,,2300,,Time,3,>=,Maintain altitude and heading.
-1000,290,,0,,0,,,2300,,Time,15,>=,Maintain altitude and heading.
-1000,,,0,,,,,2300,10,bank,30,,Turn RIGHT to heading 110° with a 30° bank.
-1000,,,0,,30,,,2300,,heading,110,9,Turn RIGHT to heading 110° with a 30° bank.
-1000,,,0,,,,,2300,,Time,3,>=,Maintain altitude and heading.
-1000,110,,0,,0,,,2300,,Time,15,>=,Maintain altitude and heading.
-1000,,,0,,,,,2300,10,bank,-45,,Turn LEFT to heading 260° with a 45° bank.
-1000,,,0,,-45,,,2300,,heading,260,15,Turn LEFT to heading 260° with a 45° bank.
-1000,,,0,,,,,2300,,Time,4,>=,Maintain altitude and heading.
-1000,260,,0,,0,,,2300,,Time,15,>=,Maintain altitude and heading.
+altitude,heading,speed,vertical speed,pitch,bank,flaps,throttle,g-force,rpm,ResponseTime,EndsAt,EndsAtValue,EndsAtValueTolerance,Hint
+1000,,,0,,0,,,,2300,,Time,5,>=,Maintain altitude AND heading (310°). You don't have to use throttle in this exercise.
+1000,310,,0,,0,,,,2300,,Time,15,>=,Maintain altitude AND heading (310°). You don't have to use throttle in this exercise.
+1000,,,0,,,,,,2300,10,bank,-20,,Turn LEFT to heading 220° with a 20° bank.
+1000,,,0,,-20,,,,2300,,heading,220,,Turn LEFT to heading 220° with a 20° bank.
+1000,,,0,,,,,,2300,,Time,3,>=,Maintain altitude and heading.
+1000,220,,0,,0,,,,2300,,Time,15,>=,Maintain altitude and heading.
+1000,,,0,,,,,,2300,10,bank,10,,Turn RIGHT to heading 290° with a 10° bank.
+1000,,,0,,10,,,,2300,,heading,290,,Turn RIGHT to heading 290° with a 10° bank.
+1000,,,0,,,,,,2300,,Time,3,>=,Maintain altitude and heading.
+1000,290,,0,,0,,,,2300,,Time,15,>=,Maintain altitude and heading.
+1000,,,0,,,,,,2300,10,bank,30,,Turn RIGHT to heading 110° with a 30° bank.
+1000,,,0,,30,,,,2300,,heading,110,9,Turn RIGHT to heading 110° with a 30° bank.
+1000,,,0,,,,,,2300,,Time,3,>=,Maintain altitude and heading.
+1000,110,,0,,0,,,,2300,,Time,15,>=,Maintain altitude and heading.
+1000,,,0,,,,,,2300,10,bank,-45,,Turn LEFT to heading 260° with a 45° bank.
+1000,,,0,,-45,,,,2300,,heading,260,15,Turn LEFT to heading 260° with a 45° bank.
+1000,,,0,,,,,,2300,,Time,4,>=,Maintain altitude and heading.
+1000,260,,0,,0,,,,2300,,Time,15,>=,Maintain altitude and heading.
