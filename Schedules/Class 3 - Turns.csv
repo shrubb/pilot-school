@@ -2,7 +2,7 @@ altitude,heading,speed,vertical speed,pitch,bank,flaps,throttle,rpm,ResponseTime
 1000,,,0,,0,,,2300,,Time,5,>=,Maintain altitude AND heading (310°). You don't have to use throttle in this exercise.
 1000,310,,0,,0,,,2300,,Time,15,>=,Maintain altitude AND heading (310°). You don't have to use throttle in this exercise.
 1000,,,0,,,,,2300,10,bank,-20,,Turn LEFT to heading 220° with a 20° bank.
-1000,,,0,,-45,,,2300,,heading,220,,Turn LEFT to heading 220° with a 20° bank.
+1000,,,0,,-20,,,2300,,heading,220,,Turn LEFT to heading 220° with a 20° bank.
 1000,,,0,,,,,2300,,Time,3,>=,Maintain altitude and heading.
 1000,220,,0,,0,,,2300,,Time,15,>=,Maintain altitude and heading.
 1000,,,0,,,,,2300,10,bank,10,,Turn RIGHT to heading 290° with a 10° bank.

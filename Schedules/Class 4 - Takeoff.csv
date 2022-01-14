@@ -1,0 +1,11 @@
+altitude,heading,speed,vertical speed,pitch,bank,flaps,throttle,g-force,rpm,ResponseTime,EndsAt,EndsAtValue,EndsAtValueTolerance,Hint
+,,5+7-6,,,,,,1,,,flaps,1,,"Taxi and line up with the runway. Run the ""TAKEOFF"" checklist (with flaps at 10 deg.) and take off."
+,,5+7-6,,,,1,,1,,,throttle,1,,"Taxi and line up with the runway. Run the ""TAKEOFF"" checklist (with flaps at 10 deg.) and take off."
+,,50+10-50,,,,1,1,1,,,pitch,6.5,>=,Use pedals to stay on the centerline.
+,,,,,,1,1,1,,10,speed,70,>=,Accelerate to 70 kts.
+,230,,,,,,1,1,,7,flaps,0,,Retract flaps. Maintain runway heading.
+,230,70,,,,0,1,1,,,altitude,500,>=,Climb to 500 ft.
+,,70,,,,0,1,1,,8,bank,20,,Continue climbing and turn right to heading 320.
+,,70,,,20,0,1,1,,,heading,320,,Roll out.
+,,70,,,,0,1,1,,,Time,5,>=,Continue climbing to 1000 ft.
+,320,70,,,,0,1,1,,,altitude,1000,,

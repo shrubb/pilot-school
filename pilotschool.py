@@ -17,6 +17,7 @@ class DEFAULTS:
         'bank': 5.0,
         'flaps': 0.0,
         'throttle': 0.06,
+        'g-force': 0.3,
         'rpm': 90.0,
         'ResponseTime': 0.0,
     }
@@ -31,6 +32,7 @@ class DEFAULTS:
         'bank': 1.0,
         'flaps': 1.0,
         'throttle': 1.0,
+        'g-force': 4.0,
         'rpm': 1.0,
         'ResponseTime': 1.0,
     }
