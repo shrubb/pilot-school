@@ -326,9 +326,11 @@ class MainBackgroundWorker(threading.Thread):
 
                         def get_output_path(total_penalty=0.0):
                             date = datetime.datetime.now().strftime("%Y-%m-%d-%H%M")
+                            signature = \
+                                round((math.sin(total_penalty + float(date.split('-')[-1])) + 1) * 1000)
                             output_file_name = \
                                 f"{args.schedule.with_suffix('').name}, {captain_name}, " \
-                                f"{date}, {round((math.sin(total_penalty) + 1) * 1000)}.csv"
+                                f"{date}, {signature}.csv"
                             return pathlib.Path("./Results") / output_file_name
 
                         output_path = get_output_path(total_penalty)
