@@ -4,4 +4,4 @@ altitude,heading,speed,vertical speed,pitch,bank,flaps,throttle,g-force,rpm,wayp
 ,,,,,0+10-10,,,1,,,,flaps,3,,"Start approach, fully extend flaps.",,
 ,,,,,0+10-10,3,,1,,,13,speed,55,6,Slow down to 55 kts.,,
 ,,55+9-5,,,0+10-10,3,,1,,"55.2048,38.6744",,distance,0.7,<=,Continue approach. Use little power.,,
-,,,,,0+10-10,3,,1,,,,speed,0,,Power to idle.,,
+,,,,,0+10-10,3,,1,,,,speed,0,,Power to idle. Focus on the end of the runway.,,
