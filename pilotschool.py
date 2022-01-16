@@ -291,6 +291,9 @@ class Progress:
         constraints_retval = []
 
         for param_name, param_penalty in penalty_coeffs.items():
+            if param_name in ('touchdowns',):
+                continue
+
             constraint_is_met = __class__.check_within_tolerance(
                 param_name, segment, record, timestamp, tolerances[param_name])
 
@@ -303,7 +306,8 @@ class Progress:
         landing_vertspeed = self.touchdown_tracker.get_last_step_landing_vertspeed()
         if landing_vertspeed is not None:
             param_name = 'touchdowns'
-            self.current_segment_penalties[param_name] += penalty_coeffs[param_name] * landing_vertspeed
+            self.current_segment_penalties[param_name] += \
+                penalty_coeffs[param_name] * max(0, landing_vertspeed - 120.0)
 
         return constraints_retval
 
