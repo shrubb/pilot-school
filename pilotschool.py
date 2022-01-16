@@ -19,7 +19,10 @@ class DEFAULTS:
         'throttle': 0.06,
         'g-force': 0.3,
         'rpm': 90.0,
+
         'ResponseTime': 0.0,
+        'distance': 0.0,
+        'touchdowns': 0.0,
     }
 
     # What is the penalty for 1 second of deviation?
@@ -34,8 +37,24 @@ class DEFAULTS:
         'throttle': 1.0,
         'g-force': 4.0,
         'rpm': 1.0,
+
         'ResponseTime': 1.0,
+        'distance': 1.0,
+        'touchdowns': 1.0 / 5,
     }
+
+
+class Coordinate:
+    def __init__(self, lat, lon):
+        self.lat = lat
+        self.lon = lon
+
+    def distance_to(self, other):
+        # Source: https://stackoverflow.com/a/21623206
+        p = math.pi / 180
+        a = 0.5 - math.cos((other.lat-self.lat)*p)/2 + math.cos(self.lat*p) * \
+            math.cos(other.lat*p) * (1-math.cos((other.lon-self.lon)*p))/2
+        return 12742 * math.asin(math.sqrt(a)) #2*R*asin...
 
 
 class Flight:
@@ -156,6 +175,10 @@ class Flight:
 
             segment_without_tol_pen[parameter] = float(tol_range_string) if tol_range_string else None
 
+        if segment['waypoint']:
+            segment_without_tol_pen['waypoint'] = Coordinate(
+                *map(float, segment['waypoint'].split(',')))
+
         return updated_tolerances, updated_penalty_coeffs, segment_without_tol_pen
 
     @staticmethod
@@ -179,6 +202,7 @@ class Progress:
         self.penalties_history = []
         self.current_segment_idx = None
         self.prev_timestamp = None
+        self.touchdown_tracker = __class__.TouchdownTracker()
         self.current_segment_penalties = {k: 0.0 for k in DEFAULTS.tolerances}
 
         self.flight.schedule[0]['StartTime'] = 0 # TODO remove
@@ -191,9 +215,16 @@ class Progress:
         if self.current_segment_idx is None:
             retval = {param_name: None for param_name in DEFAULTS.tolerances.keys()}
             retval['Hint'] = '(dummy)'
+            retval['waypoint'] = None
             return retval
         else:
             return self.flight.schedule[self.current_segment_idx]
+
+    @staticmethod
+    def _compute_extra_record_data(record, segment):
+        if segment['waypoint']:
+            record['distance'] = Coordinate(record['latitude'], record['longitude']).distance_to(
+                segment['waypoint'])
 
     def step(self, record, timestamp):
         """
@@ -205,6 +236,8 @@ class Progress:
             list of (str, number, bool)
             Each tuple means (parameter name, parameter value, is constraint currently met)
         """
+        self.touchdown_tracker.step(record)
+
         if self.all_segments_completed():
             return False, []
 
@@ -214,6 +247,8 @@ class Progress:
 
         duration = timestamp - self.prev_timestamp
         self.prev_timestamp = timestamp
+
+        self._compute_extra_record_data(record, self.get_current_segment())
 
         # maybe jump to next segment (maybe even several times)
         segment_has_changed = False
@@ -231,10 +266,12 @@ class Progress:
 
             self.current_segment_penalties = {k: 0.0 for k in DEFAULTS.tolerances}
 
+
             if self.all_segments_completed():
                 # no more schedule segments left
                 break
             else:
+                self._compute_extra_record_data(record, self.get_current_segment())
                 # TODO remove
                 self.get_current_segment()['StartTime'] = timestamp
 
@@ -262,6 +299,11 @@ class Progress:
 
             if segment[param_name] is not None:
                 constraints_retval.append((param_name, segment[param_name], constraint_is_met))
+
+        landing_vertspeed = self.touchdown_tracker.get_last_step_landing_vertspeed()
+        if landing_vertspeed is not None:
+            param_name = 'touchdowns'
+            self.current_segment_penalties[param_name] += penalty_coeffs[param_name] * landing_vertspeed
 
         return constraints_retval
 
@@ -324,3 +366,24 @@ class Progress:
         else:
             actual_param = record[param_name]
             return target_param + tolerance[0] <= actual_param and actual_param <= target_param + tolerance[1]
+
+    class TouchdownTracker:
+        def __init__(self):
+            self.prev_vertical_speed = None
+            self.prev_on_ground = None
+            self.last_step_landing_vertspeed = None
+
+        def step(self, record):
+            self.last_step_landing_vertspeed = None
+
+            new_vertical_speed = record['vertical speed']
+            new_on_ground = record['on ground']
+
+            if self.prev_on_ground == 0 and new_on_ground == 1:
+                self.last_step_landing_vertspeed = max(0, -self.prev_vertical_speed)
+
+            self.prev_vertical_speed = new_vertical_speed
+            self.prev_on_ground = new_on_ground
+
+        def get_last_step_landing_vertspeed(self):
+            return self.last_step_landing_vertspeed # None or float

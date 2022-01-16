@@ -1,0 +1,7 @@
+altitude,heading,speed,vertical speed,pitch,bank,flaps,throttle,g-force,rpm,waypoint,ResponseTime,EndsAt,EndsAtValue,EndsAtValueTolerance,Hint,distance,touchdowns
+900,,70,,,,,,1,,"55.2232,38.7198",,distance,0.7,<=,Prepare to make a left turn after the forest ends.,,
+900,,70,,,,,,1,,"55.2160,38.7050",,distance,0.3,<=,"Make a left turn to runway. Note the ""angle of trees"".",,
+,,,,,0+10-10,,,1,,,,flaps,3,,"Start approach, fully extend flaps.",,
+,,,,,0+10-10,3,,1,,,13,speed,55,6,Slow down to 55 kts.,,
+,,55+9-5,,,0+10-10,3,,1,,"55.2048,38.6744",,distance,0.7,<=,Continue approach. Use little power.,,
+,,,,,0+10-10,3,,1,,,,speed,0,,Power to idle.,,

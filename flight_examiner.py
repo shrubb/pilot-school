@@ -193,6 +193,8 @@ class FlightInfoFrame(tkinter.Text):
             return f"{round(param_value)} RPM"
         elif param_name == 'throttle':
             return f"{round(param_value * 100)}%"
+        elif param_name == 'distance':
+            return f"{round(param_value, 1)} km"
         elif param_name == 'g-force':
             return f"{round(param_value, 1)}"
         elif param_name == 'pause':
@@ -211,7 +213,7 @@ class FlightInfoFrame(tkinter.Text):
 
     PARAMETER_PRIORITY = {name: i for i, name in enumerate(
         ['Time', 'ResponseTime', 'speed', 'throttle', 'rpm', 'flaps', 'altitude',
-        'heading', 'bank', 'pitch', 'vertical speed', 'g-force'])}
+        'heading', 'bank', 'pitch', 'vertical speed', 'distance', 'g-force'])}
 
 
 class FlightSimParametersReader:
@@ -262,6 +264,9 @@ class FlightSimParametersReader:
             (0x088C, 'h', "throttle",       lambda x: x / 16384),
             (0x1140, 'f', "g-force",        lambda x: x),
             (0x0264, 'H', "pause",          lambda x: 1 * (x & 0x4 != 0)),
+            (0x6010, 'f', "latitude",       lambda x: x),
+            (0x6018, 'f', "longitude",      lambda x: x),
+            (0x0366, 'h', "on ground",      lambda x: x),
         ]
 
         self.data_spec = self.fsuipc.prepare_data(
