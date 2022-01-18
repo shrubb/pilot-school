@@ -13,7 +13,7 @@
             </CloudLayerDensity>
             <CloudLayerCoverage Value="0.450" Unit="(0 - 1)">
             </CloudLayerCoverage>
-            <CloudLayerAltitudeBot Value="1246.632" Unit="m">
+            <CloudLayerAltitudeBot Value="1310.640" Unit="m">
             </CloudLayerAltitudeBot>
             <CloudLayerAltitudeTop Value="2500.000" Unit="m">
             </CloudLayerAltitudeTop>
@@ -49,7 +49,7 @@
             </WindLayerAltitude>
             <WindLayerAngle Value="270.000" Unit="degrees">
             </WindLayerAngle>
-            <WindLayerSpeed Value="0.047" Unit="knts">
+            <WindLayerSpeed Value="0.000" Unit="knts">
             </WindLayerSpeed>
         </WindLayer>
         <MSLPressure Value="101325.000" Unit="pa">
