@@ -40,7 +40,7 @@ FirstFlightState=PREFLIGHT_PUSHBACK
 [Weather]
 UseWeatherFile=False
 UseLiveWeather=False
-WeatherPresetFile=C:\Users\shrub\AppData\Roaming\Microsoft Flight Simulator\Weather\Presets\Class6.WPR
+WeatherPresetFile=.\WeatherPresets\ScatteredClouds.WPR
 WeatherCanBeLive=False
 CloudmapPosOverride=False
 CloudmapInitialPosX=0
@@ -52,7 +52,7 @@ ICAO=UUML
 GateName=NONE
 GateNumber=3
 GateSuffix=NONE
-RunwayNumber=5
+RunwayNumber=23
 RunwayDesignator=NONE
 
 [Loading]
@@ -91,7 +91,7 @@ CtCur=CLEARANCE_NONE
 WaypointNext=0
 AltCleared=-1
 HdgAssigned=-1
-SquawkAssigned=70144
+SquawkAssigned=201216
 LandingSequence=LANDING_NONE
 DepartureRequest=DEPARTURE_VFR_REQUEST_NONE
 ParkingRequest=PARKING_NAME_NONE
@@ -101,7 +101,7 @@ ApproachIndex=-1
 ApproachTransitionIndex=-1
 ApproachRequestIndex=-1
 ApproachTransitionRequestIndex=-1
-RunwayIndex=0
+RunwayIndex=1
 RunwayRequestIndex=-1
 ParkingIndex=1
 FlightFollowing=FLIGHT_FOLLOWING_NO
@@ -127,20 +127,20 @@ Season=Spring
 Year=2022
 Day=138
 Hours=11
-Minutes=20
-Seconds=28.444353103637695312
+Minutes=19
+Seconds=23.447374343872070312
 UseZuluTime=False
 
 [SimplifiedSim.0]
 Mode=None
 
 [SimVars.0]
-Latitude=N55° 12' 22.33"
-Longitude=E38° 40' 32.23"
-Altitude=+000428.10
-Pitch=-1.2323333591832597023
-Bank=0.05055831574750435653
-Heading=152.00913109586943506
+Latitude=N55° 12' 23.87"
+Longitude=E38° 40' 35.69"
+Altitude=+000428.07
+Pitch=-1.3022187875537725166
+Bank=0.039314084108256375227
+Heading=151.94943859497647054
 PVelBodyAxis=0
 BVelBodyAxis=0
 HVelBodyAxis=0
@@ -199,7 +199,7 @@ Attitude=False
 
 [Engine Parameters.1.0]
 ThrottleLeverPct=0
-PropellerLeverPct=0.9000244140625
+PropellerLeverPct=0
 MixtureLeverPct=0
 Pct Engine RPM=0
 MaxReachedEngineRPM=2454.7394303494743326
@@ -217,9 +217,9 @@ EngineMasterSwitch=False
 GlowPlugTemperaturePct=1
 IgnitionSwitch=0
 StarterSwitch=False
-EGT_DegR=518.68835130443278558
+EGT_DegR=518.71777343749727152
 ITT_DegR=-1.7976931348623157081e+308
-FuelPressurePSF=3.3342000398925003799e-11
+FuelPressurePSF=2.9949284270268816359e-46
 CorrectedFF=-1.7976931348623157081e+308
 
 [Propeller.1.0]
@@ -280,7 +280,7 @@ LOCAL_milliBar_to_inHg=0
 XMLVAR_FUEL_FLOW_TARGET=0
 XMLVAR_PUMPED_FUEL=-1.0000000000000004206e-05
 JPL152_CHT_HELPER=0
-XMLVAR_Engine_Condition=14.238405441276212215
+XMLVAR_Engine_Condition=14.487897222744813064
 XMLVAR_Fuel_Evaporating=0
 JPL152_ADFVOL=0
 JPL152_COM1VOL=0
@@ -328,32 +328,12 @@ LIGHTING_PANEL_1=0
 LIGHTING_POTENTIOMETER_6=50
 LIGHTING_CABIN_1=0
 LIGHTING_GLARESHIELD_1=0
-XMLVAR_ADF_Mode=0
-KX155A_1_ScreenLuminosity=0
-KX155A_1_State=0
-KX155A_2_ScreenLuminosity=0
-KX155A_2_State=0
-KR87_ScreenLuminosity=0
-KR87_State=0
-KAP140_ScreenLuminosity=0
-KAP140_State=0
-AutopilotPreflightCheckCompleted=0
-JPLDME_ScreenLuminosity=0
-JPLDME_State=0
-AS330_ScreenLuminosity=0
-AS330_State=0
-EFB_ScreenLuminosity=0
-EFB_State=0
 HUD_AP_SELECTED_SPEED=0
 HUD_AP_SELECTED_ALTITUDE=0
-KAP140_BARO_Display=0
 PFD_BRG1_Source=0
 PFD_BRG2_Source=0
 PFD_CDI_Source=1
 Glasscockpit_DmeSource=1
-HourMeter_ScreenLuminosity=0
-HourMeter_State=0
-AP_NAV_SELECT_TMP=0
 
 [Switches.0]
 PitotHeat=False
@@ -412,9 +392,9 @@ circuit.19=False,1.00
 circuit.20=True,1.00
 circuit.21=True,1.00
 circuit.22=True,1.00
-circuit.23=True,1.00
+circuit.23=False,1.00
 circuit.24=True,1.00
-circuit.25=True,1.00
+circuit.25=False,1.00
 circuit.26=False,1.00
 circuit.27=False,1.00
 circuit.28=True,1.00
@@ -504,8 +484,8 @@ Gear3=100.00
 YokeY=050.00
 YokeX=050.00
 Rudder=050.00
-LeftBrake=099.94
-RightBrake=099.94
+LeftBrake=100.00
+RightBrake=100.00
 ParkingBrake=100.00
 ElevatorTrim=050.00
 RudderTrimPct=0
@@ -519,4 +499,4 @@ GLimiterSetting=0
 
 [SimScheduler]
 SimSpeed=001.00
-SimTime=842.97834782158975031
+SimTime=977.26788454359416392

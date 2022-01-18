@@ -4,32 +4,32 @@
     <Descr>AceXML Document</Descr>
     <WeatherPreset.Preset>
         <Name>Class6</Name>
-        <Image>weather/presets/broken_clouds.jpg</Image>
-        <Icon>weather/presets/broken_clouds.svg</Icon>
-        <LayeredImage>weather/presets/broken_clouds_layer.png</LayeredImage>
+        <Image>weather/presets/scattered_clouds.jpg</Image>
+        <Icon>weather/presets/scattered_clouds.svg</Icon>
+        <LayeredImage>weather/presets/scattered_clouds_layer.png</LayeredImage>
         <IsAltitudeAMGL>True</IsAltitudeAMGL>
         <CloudLayer>
             <CloudLayerDensity Value="1.000" Unit="(0 - 1)">
             </CloudLayerDensity>
-            <CloudLayerCoverage Value="0.660" Unit="(0 - 1)">
+            <CloudLayerCoverage Value="0.450" Unit="(0 - 1)">
             </CloudLayerCoverage>
-            <CloudLayerAltitudeBot Value="5818.086" Unit="m">
+            <CloudLayerAltitudeBot Value="1246.632" Unit="m">
             </CloudLayerAltitudeBot>
-            <CloudLayerAltitudeTop Value="7242.859" Unit="m">
+            <CloudLayerAltitudeTop Value="2500.000" Unit="m">
             </CloudLayerAltitudeTop>
-            <CloudLayerScattering Value="0.851" Unit="(0 - 1)">
+            <CloudLayerScattering Value="0.900" Unit="(0 - 1)">
             </CloudLayerScattering>
         </CloudLayer>
         <CloudLayer>
             <CloudLayerDensity Value="1.000" Unit="(0 - 1)">
             </CloudLayerDensity>
-            <CloudLayerCoverage Value="0.446" Unit="(0 - 1)">
+            <CloudLayerCoverage Value="0.450" Unit="(0 - 1)">
             </CloudLayerCoverage>
-            <CloudLayerAltitudeBot Value="1190.617" Unit="m">
+            <CloudLayerAltitudeBot Value="4000.000" Unit="m">
             </CloudLayerAltitudeBot>
-            <CloudLayerAltitudeTop Value="4038.012" Unit="m">
+            <CloudLayerAltitudeTop Value="9000.000" Unit="m">
             </CloudLayerAltitudeTop>
-            <CloudLayerScattering Value="0.775" Unit="(0 - 1)">
+            <CloudLayerScattering Value="0.350" Unit="(0 - 1)">
             </CloudLayerScattering>
         </CloudLayer>
         <CloudLayer>
@@ -49,14 +49,14 @@
             </WindLayerAltitude>
             <WindLayerAngle Value="270.000" Unit="degrees">
             </WindLayerAngle>
-            <WindLayerSpeed Value="0.000" Unit="knts">
+            <WindLayerSpeed Value="0.047" Unit="knts">
             </WindLayerSpeed>
         </WindLayer>
         <MSLPressure Value="101325.000" Unit="pa">
         </MSLPressure>
         <MSLTemperature Value="288.150" Unit="k">
         </MSLTemperature>
-        <AerosolDensity Value="4.000" Unit="m">
+        <AerosolDensity Value="3.000" Unit="m">
         </AerosolDensity>
         <Pollution Value="0.000" Unit="(0 - 1)">
         </Pollution>
