@@ -212,7 +212,7 @@ class FlightInfoFrame(tkinter.Text):
             return param_name
 
     PARAMETER_PRIORITY = {name: i for i, name in enumerate(
-        ['Time', 'ResponseTime', 'speed', 'throttle', 'rpm', 'flaps', 'altitude',
+        ['Time', 'ResponseTime', 'speed', 'throttle', 'rpm', 'altitude', 'flaps',
         'heading', 'bank', 'pitch', 'vertical speed', 'distance', 'g-force'])}
 
 
