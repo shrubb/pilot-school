@@ -35,7 +35,7 @@ Path=Class6 - Sim1
 File=Class6 - Sim1
 
 [FreeFlight]
-FirstFlightState=PREFLIGHT_HOLDSHORT
+FirstFlightState=PREFLIGHT_PUSHBACK
 
 [Weather]
 UseWeatherFile=False
@@ -50,7 +50,7 @@ FixedClouds=False
 [Departure]
 ICAO=UUML
 GateName=NONE
-GateNumber=5
+GateNumber=3
 GateSuffix=NONE
 RunwayNumber=5
 RunwayDesignator=NONE
@@ -103,7 +103,7 @@ ApproachRequestIndex=-1
 ApproachTransitionRequestIndex=-1
 RunwayIndex=0
 RunwayRequestIndex=-1
-ParkingIndex=10
+ParkingIndex=1
 FlightFollowing=FLIGHT_FOLLOWING_NO
 AirspaceTransition=AIRSPACE_TRANSITION_NONE
 BVAirspaceTransition=BV_TYPE_NONE
@@ -127,20 +127,20 @@ Season=Spring
 Year=2022
 Day=138
 Hours=11
-Minutes=35
-Seconds=16.622333526611328125
+Minutes=20
+Seconds=28.444353103637695312
 UseZuluTime=False
 
 [SimplifiedSim.0]
 Mode=None
 
 [SimVars.0]
-Latitude=N55° 12' 22.40"
-Longitude=E38° 40' 32.04"
-Altitude=+000428.09
-Pitch=-1.3373793207405286765
-Bank=0.026628199328528230627
-Heading=158.03591678553971178
+Latitude=N55° 12' 22.33"
+Longitude=E38° 40' 32.23"
+Altitude=+000428.10
+Pitch=-1.2323333591832597023
+Bank=0.05055831574750435653
+Heading=152.00913109586943506
 PVelBodyAxis=0
 BVelBodyAxis=0
 HVelBodyAxis=0
@@ -184,6 +184,14 @@ AvionicsSwitch=False
 [Slew.0]
 Active=False
 
+[SystemFailure0.0]
+ID=D8E878B03ED5314E80CD7F7C8E88914D
+SubIndex=0
+Health=0
+Armed=False
+ArmedFailureFromTime=0
+ArmedFailureToTime=0
+
 [Freeze.0]
 Location=False
 Altitude=False
@@ -191,7 +199,7 @@ Attitude=False
 
 [Engine Parameters.1.0]
 ThrottleLeverPct=0
-PropellerLeverPct=1
+PropellerLeverPct=0.9000244140625
 MixtureLeverPct=0
 Pct Engine RPM=0
 MaxReachedEngineRPM=2454.7394303494743326
@@ -203,15 +211,15 @@ GeneratorSwitch=False
 CowlFlapPct=0
 FuelPumpSwitch=False
 FuelPumpSwitch_EX1=0
-FuelValveOpen=True
+FuelValveOpen=False
 CarbHeat/DeiceSwitch=False
 EngineMasterSwitch=False
 GlowPlugTemperaturePct=1
 IgnitionSwitch=0
 StarterSwitch=False
-EGT_DegR=518.71777343750272848
+EGT_DegR=518.68835130443278558
 ITT_DegR=-1.7976931348623157081e+308
-FuelPressurePSF=4.4768618921706135138e-07
+FuelPressurePSF=3.3342000398925003799e-11
 CorrectedFF=-1.7976931348623157081e+308
 
 [Propeller.1.0]
@@ -222,8 +230,8 @@ prop_max_rpm_percent=0
 TankSelector=All
 TankSelector1=All
 Center=0
-LeftMain=49.886165618896484375
-RightMain=49.886165618896484375
+LeftMain=50
+RightMain=50
 LeftAux=0
 RightAux=0
 LeftTip=0
@@ -266,13 +274,13 @@ XMLVAR_JPL_VISOR_COPILOT=0
 JPL_WINDOW_PILOT=0
 JPL_DOOR_PILOT=1
 JPL_WINDOW_COPILOT=0
-JPL_DOOR_COPILOT=0
+JPL_DOOR_COPILOT=1
 JPL152_APVIZ=1
 LOCAL_milliBar_to_inHg=0
 XMLVAR_FUEL_FLOW_TARGET=0
-XMLVAR_PUMPED_FUEL=0.02335952852156960094
+XMLVAR_PUMPED_FUEL=-1.0000000000000004206e-05
 JPL152_CHT_HELPER=0
-XMLVAR_Engine_Condition=156.59615053697146436
+XMLVAR_Engine_Condition=14.238405441276212215
 XMLVAR_Fuel_Evaporating=0
 JPL152_ADFVOL=0
 JPL152_COM1VOL=0
@@ -282,8 +290,8 @@ XMLVAR_Magneto_Starter_IsHeld=0
 XMLVAR_LeverThrottleHidden1=0
 XMLVAR_LeverMixtureHidden1=0
 ENG FUEL VALVE:1=0
-XMLVAR_YokeHidden1=1
-XMLVAR_YokeHidden2=1
+XMLVAR_YokeHidden1=0
+XMLVAR_YokeHidden2=0
 HANDLING_ElevatorTrim=0
 ParkingBrake_Position=100
 XMLVAR_ADF_Frequency_10_Khz=0
@@ -310,7 +318,7 @@ INSTRUMENT_ADF=0
 INSTRUMENT_Altimeter_1=1013.2500109386215854
 INSTRUMENT_Course_1=274
 INSTRUMENT_Course_2=68
-LIGHTING_STROBE_1=1
+LIGHTING_STROBE_1=0
 LIGHTING_NAV_1=0
 LIGHTING_TAXI_1=0
 LIGHTING_LANDING_1=0
@@ -329,7 +337,7 @@ KR87_ScreenLuminosity=0
 KR87_State=0
 KAP140_ScreenLuminosity=0
 KAP140_State=0
-AutopilotPreflightCheckCompleted=1
+AutopilotPreflightCheckCompleted=0
 JPLDME_ScreenLuminosity=0
 JPLDME_State=0
 AS330_ScreenLuminosity=0
@@ -391,7 +399,7 @@ circuit.6=False,1.00
 circuit.7=False,1.00
 circuit.8=False,1.00
 circuit.9=False,1.00
-circuit.10=True,1.00
+circuit.10=False,1.00
 circuit.11=False,1.00
 circuit.12=False,1.00
 circuit.13=False,1.00
@@ -496,8 +504,8 @@ Gear3=100.00
 YokeY=050.00
 YokeX=050.00
 Rudder=050.00
-LeftBrake=100.00
-RightBrake=100.00
+LeftBrake=099.94
+RightBrake=099.94
 ParkingBrake=100.00
 ElevatorTrim=050.00
 RudderTrimPct=0
@@ -511,4 +519,4 @@ GLimiterSetting=0
 
 [SimScheduler]
 SimSpeed=001.00
-SimTime=1573.9696457073653164
+SimTime=842.97834782158975031
